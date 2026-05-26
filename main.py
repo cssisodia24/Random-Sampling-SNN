@@ -1,3 +1,7 @@
+import numpy as np
+np.int = int
+np.float = float
+np.bool = bool
 import argparse
 from pathlib import Path
 import torch
