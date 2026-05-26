@@ -1,7 +1,7 @@
 import networkx as nx
 import yaml
 import collections
-import numpy
+import numpy as np
 import random
 
 
