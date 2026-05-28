@@ -1,0 +1,12 @@
+--- 1-Hour SNN Test Run ---
+
+Command Used:
+!torchrun --nproc_per_node=1 main.py --epochs 10 --batch-size 128 --T 2
+
+Final Results:
+Acc@1: 81.20%
+Acc@5: 98.96%
+
+Notes:
+- Applied builtins.int monkey patch to main.py to fix NumPy deprecation error.
+- Bypassed DistributedSampler bug by using torchrun with 1 node.
