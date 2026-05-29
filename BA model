@@ -1,0 +1,14 @@
+--- Barabási-Albert (BA) Model Results ---
+
+Hardware Efficiency:
+- Max Memory (VRAM): 8534 MB
+- Batch Processing Time: ~0.62 seconds/batch
+
+Final Training Metrics (Epoch 10):
+- Acc@1: 78.57%
+- Acc@5: 98.88%
+- Loss: 0.616
+
+Notes: 
+- The BA "Rich-Get-Richer" hub network performed slightly better than the purely random ER/GNM models, but still fell short of the highly-clustered WS baseline.
+- Like ER/GNM, it still requires massive memory (8534 MB) to process due to long-range hub connections, proving again that small-world topologies are the most efficient for SNNs.
