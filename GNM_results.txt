@@ -1,0 +1,14 @@
+--- Exact Random (GNM) Model Results ---
+
+Hardware Efficiency:
+- Max Memory (VRAM): [11928] MB
+- Batch Processing Time: ~[0.5854 ] seconds/batch
+
+Final Training Metrics (Epoch 10):
+- Acc@1: [72.120]%
+- Acc@5: [98.210]%
+- Loss: [0.792]
+
+Notes: 
+- GNM fixes the exact number of edges but still places them randomly.
+- As expected, performance mirrors the ER model and falls short of the WS "small-world" baseline because it lacks local clustering.
