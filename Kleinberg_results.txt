@@ -1,8 +1,8 @@
 --- Kleinberg Small-World (Distance-Biased) Results ---
 
 Hardware Efficiency:
-- Max Memory (VRAM): [INSERT NUMBER] MB
-- Batch Processing Time: ~[INSERT NUMBER] seconds/batch
+- Max Memory (VRAM): [8512] MB
+- Batch Processing Time: ~[0.4812 s / it] seconds/batch
 
 Final Training Metrics (Epoch 10):
 - Acc@1: [77.920]%
