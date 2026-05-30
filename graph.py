@@ -46,6 +46,38 @@ def get_skip_graph(nodes, input_nodes, output_nodes, skip_ratio):
     return skip_graph
 
 
+def kleinberg_ws_graph(n, k, p, alpha=2.0, seed=None):
+    if seed is not None:
+        random.seed(seed)
+        numpy.random.seed(seed)
+        
+    G = nx.Graph()
+    G.add_nodes_from(range(n))
+    for i in range(n):
+        for j in range(1, k // 2 + 1):
+            G.add_edge(i, (i + j) % n)
+            
+    edges = list(G.edges())
+    for u, v in edges:
+        if random.random() < p:
+            G.remove_edge(u, v)
+            valid_targets = []
+            probs = []
+            for w in range(n):
+                if w != u and not G.has_edge(u, w):
+                    dist = min(abs(u - w), n - abs(u - w))
+                    valid_targets.append(w)
+                    probs.append(float(dist) ** -alpha)
+            
+            if valid_targets:
+                probs = numpy.array(probs)
+                probs /= probs.sum()
+                new_v = numpy.random.choice(valid_targets, p=probs)
+                G.add_edge(u, new_v)
+                
+    return G
+
+
 def build_graph(Nodes, args):
     args.graph_seed += 1
     if args.graph_model == 'ER':
@@ -56,6 +88,8 @@ def build_graph(Nodes, args):
         return nx.random_graphs.connected_watts_strogatz_graph(Nodes, args.K, args.P, tries=200, seed=args.graph_seed)
     elif args.graph_model == 'GNM':
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
+    elif args.graph_model == 'Kleinberg':
+        return kleinberg_ws_graph(Nodes, args.K, args.P, alpha=2.0, seed=args.graph_seed)
 
 def save_graph(graph, path):
     with open(path, 'w') as f:

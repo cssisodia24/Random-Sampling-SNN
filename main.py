@@ -1,3 +1,6 @@
+import builtins
+import numpy as np
+np.int = builtins.int
 import numpy as np
 np.int = int
 np.float = float
