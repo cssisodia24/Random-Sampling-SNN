@@ -1,0 +1,4 @@
+Test: Total time: 0:00:25 (0.6279 s / it)
+* Acc@1 71.080 Acc@5 98.000 loss 0.825
+Accuracy of the network on the 10000 test images: 71.1%
+Max accuracy: 71.08
