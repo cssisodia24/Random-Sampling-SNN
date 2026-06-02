@@ -1,3 +1,6 @@
+import builtins
+import numpy as np
+np.int = builtins.int
 import numpy as np
 np.int = int
 np.float = float
@@ -137,7 +140,7 @@ def main(args):
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.lr * 0.01)
     loss_scaler = GradScaler()
 
-    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+    model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
     model_without_ddp = model.module
     criterion = torch.nn.CrossEntropyLoss()
 
