@@ -80,6 +80,23 @@ def build_graph(Nodes, args):
                 graph.add_edge(hub_node, i)
 
         return graph
+    elif args.graph_model == 'Fibonacci':
+        import networkx as nx
+        graph = nx.DiGraph()
+        graph.add_nodes_from(range(args.nodes))
+
+        # The Fibonacci skip distances
+        fib_distances = [1, 2, 3, 5]
+
+        for i in range(args.nodes):
+            for dist in fib_distances:
+                target_node = i + dist
+                
+                # Only build the edge if the target exists (DAG forward-flow constraint)
+                if target_node < args.nodes:
+                    graph.add_edge(i, target_node)
+
+        return graph
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
