@@ -58,29 +58,41 @@ def build_graph(Nodes, args):
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
     elif args.graph_model == 'Thalamus':
         import networkx as nx
-        graph = nx.DiGraph()
+        # FIX: Changed DiGraph to Graph
+        graph = nx.Graph() 
         graph.add_nodes_from(range(args.nodes))
 
-        # Place the Thalamus Hub dead in the center of the network
         hub_node = args.nodes // 2  
-        k = 2  # Local forward connections for Gray Matter processing
+        k = 2  
 
         for i in range(args.nodes):
-            # 1. Build the local Feed-Forward "Gray Matter"
             for j in range(1, k + 1):
                 if i + j < args.nodes and i != hub_node and (i + j) != hub_node:
                     graph.add_edge(i, i + j)
 
-            # 2. Build the Hub-and-Spoke "White Matter" Superhighways
             if i < hub_node and i % 2 == 0:
-                # Early even nodes send compressed features TO the Hub
                 graph.add_edge(i, hub_node)
             elif i > hub_node and i % 2 == 1:
-                # The Hub broadcasts global context TO late odd nodes
                 graph.add_edge(hub_node, i)
 
         return graph
 
+    elif args.graph_model == 'Fibonacci':
+        import networkx as nx
+        # FIX: Changed DiGraph to Graph
+        graph = nx.Graph() 
+        graph.add_nodes_from(range(args.nodes))
+
+        fib_distances = [1, 2, 3, 5]
+
+        for i in range(args.nodes):
+            for dist in fib_distances:
+                target_node = i + dist
+                
+                if target_node < args.nodes:
+                    graph.add_edge(i, target_node)
+
+        return graph
 def save_graph(graph, path):
     with open(path, 'w') as f:
         yaml.dump(graph, f)
