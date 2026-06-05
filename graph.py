@@ -56,6 +56,41 @@ def build_graph(Nodes, args):
         return nx.random_graphs.connected_watts_strogatz_graph(Nodes, args.K, args.P, tries=200, seed=args.graph_seed)
     elif args.graph_model == 'GNM':
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
+    elif args.graph_model == 'ArmoredHub':
+        # Ensure it is an undirected graph so get_graph_info works properly!
+        graph = nx.Graph()
+        graph.add_nodes_from(range(args.nodes))
+
+        # Define how big each lobe/cave is
+        cave_size = 8  
+        
+        # Identify the Hubs (Node 0, 8, 16, 24...)
+        hubs = [i for i in range(args.nodes) if i % cave_size == 0]
+
+        # 1. Build the Isolated Caves
+        for i in range(args.nodes):
+            my_cave_start = (i // cave_size) * cave_size
+            my_hub = my_cave_start
+            
+            if i not in hubs:
+                # RULE A: Local nodes MUST connect to their Hub
+                graph.add_edge(i, my_hub)
+                
+                # RULE B: Local nodes connect to their local neighbors
+                for neighbor in range(my_cave_start, my_cave_start + cave_size):
+                    if i != neighbor: 
+                        graph.add_edge(i, neighbor)
+
+        # 2. Build the Hub-to-Hub Super-Highway
+        # We create a small Small-World (WS) graph just for the hubs
+        # This prevents bottlenecks between distant lobes
+        hub_subgraph = nx.random_graphs.connected_watts_strogatz_graph(len(hubs), k=2, p=0.5)
+        
+        # Map the sub-graph edges back to the main graph's Hub IDs
+        for u, v in hub_subgraph.edges():
+            graph.add_edge(hubs[u], hubs[v])
+
+        return graph
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
