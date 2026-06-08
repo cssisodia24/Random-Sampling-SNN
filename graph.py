@@ -56,6 +56,41 @@ def build_graph(Nodes, args):
         return nx.random_graphs.connected_watts_strogatz_graph(Nodes, args.K, args.P, tries=200, seed=args.graph_seed)
     elif args.graph_model == 'GNM':
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
+    elif args.graph_model == 'BTS':
+        import numpy as np
+        import networkx as nx
+        import random
+      
+        graph = nx.Graph()
+        N = int(args.nodes)
+        graph.add_nodes_from(range(N))
+        
+        # 1. Ensure we have at least 2 Thalamic nodes for the routing to work
+        num_T = max(2, N // 10) 
+        num_C = N - num_T
+        
+        c_nodes = list(range(num_C))
+        t_nodes = list(range(num_C, N))
+        
+        # 2. Compute Nodes: Local Grid connectivity
+        side = int(np.sqrt(num_C))
+        for i in range(num_C):
+            r, c = i // side, i % side
+            for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < side and 0 <= nc < side:
+                    neighbor = nr * side + nc
+                    graph.add_edge(i, neighbor)
+                    
+        # 3. Bipartite Projection (Compute -> Thalamus)
+        # We now use min(2, len(t_nodes)) to ensure we never sample more than available
+        sample_size = min(2, len(t_nodes))
+        for c in c_nodes:
+            targets = random.sample(t_nodes, sample_size)
+            for t in targets:
+                graph.add_edge(c, t)
+                
+        return graph
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
