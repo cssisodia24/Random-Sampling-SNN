@@ -56,6 +56,54 @@ def build_graph(Nodes, args):
         return nx.random_graphs.connected_watts_strogatz_graph(Nodes, args.K, args.P, tries=200, seed=args.graph_seed)
     elif args.graph_model == 'GNM':
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
+    elif args.graph_model == 'EWT':
+        import networkx as nx
+        import numpy as np
+        import math
+
+        graph = nx.Graph()
+        N = int(args.nodes)
+        graph.add_nodes_from(range(N))
+
+        # 1. Setup Grid Coordinates for the image pixels
+        side_length = int(math.ceil(math.sqrt(N)))
+        coords = np.array([(i // side_length, i % side_length) for i in range(N)])
+
+        # 2. Matrix Math: Calculate Euclidean Distances
+        diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]
+        distances = np.linalg.norm(diff, axis=-1)
+        np.fill_diagonal(distances, np.inf) # Prevent self-loops
+
+        # 3. The Entorhinal Wave Equation
+        # omega controls how tight the rings are. 
+        # For small grids (N=16 or 32), a higher frequency works better.
+        omega = 2.0 
+        
+        # Calculate W = cos(distance * omega)
+        wave_matrix = np.cos(distances * omega)
+
+        # 4. Dynamic Thresholding (The FAIR Budget)
+        # Using WS baseline K=4 to ensure we use exactly the same memory/edges
+        baseline_K = 4
+        edge_budget = (N * baseline_K) // 2
+
+        # Flatten the upper triangle of the wave matrix and sort DESCENDING
+        # We want to connect the nodes with the HIGHEST wave peaks (closest to 1.0)
+        upper_triangle_waves = wave_matrix[np.triu_indices(N, k=1)]
+        sorted_waves = np.sort(upper_triangle_waves)[::-1]
+        
+        # Lock in the dynamic harmonic threshold
+        # Add a tiny tolerance to handle float math precision
+        tau = sorted_waves[edge_budget - 1] - 1e-6
+
+        # 5. Draw the Edges where the Wave peaks above Tau
+        sources, targets = np.where(wave_matrix >= tau)
+        
+        for u, v in zip(sources, targets):
+            if u < v: # Avoid duplicates
+                graph.add_edge(u, v)
+
+        return graph
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
