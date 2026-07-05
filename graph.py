@@ -56,6 +56,55 @@ def build_graph(Nodes, args):
         return nx.random_graphs.connected_watts_strogatz_graph(Nodes, args.K, args.P, tries=200, seed=args.graph_seed)
     elif args.graph_model == 'GNM':
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
+    elif args.graph_model == 'SpinGlass':
+        import networkx as nx
+        import numpy as np
+        import math
+        
+        N = int(args.nodes)
+        graph = nx.Graph()
+        graph.add_nodes_from(range(N))
+        
+        # 1. FAIRNESS: Define edge budget (2 * N to match baseline)
+        edge_budget = N * 2
+        
+        # 2. Random spin initialization
+        spins = np.random.choice([-1, 1], size=N)
+        
+        # 3. Interaction strength matrix
+        # J_ij represents the coupling strength between nodes i and j
+        J = np.random.normal(0, 1, (N, N))
+        
+        # 4. Energy Contribution Matrix
+        # We calculate the strength of interaction: H_ij = J_ij * s_i * s_j
+        # We want to connect nodes that contribute most to minimizing (or stabilizing) 
+        # the system energy.
+        interaction_matrix = J * np.outer(spins, spins)
+        
+        # Ensure the interaction is symmetric for an undirected graph
+        interaction_matrix = (interaction_matrix + interaction_matrix.T) / 2
+        
+        # Set diagonal to -inf so we don't connect nodes to themselves
+        np.fill_diagonal(interaction_matrix, -np.inf)
+        
+        # 5. RANK-BASED SELECTION
+        # We want the strongest coupling interactions (highest absolute value)
+        # Sort indices by interaction strength in descending order
+        flat_indices = np.argsort(np.abs(interaction_matrix.ravel()))[::-1]
+        
+        edges_added = 0
+        for idx in flat_indices:
+            if edges_added >= edge_budget:
+                break
+            
+            u, v = divmod(idx, N)
+            
+            # Ensure unique, valid undirected edges
+            if u < v and not graph.has_edge(u, v):
+                graph.add_edge(u, v)
+                edges_added += 1
+                    
+        return graph
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
