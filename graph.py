@@ -57,7 +57,6 @@ def build_graph(Nodes, args):
     elif args.graph_model == 'GNM':
         return nx.random_graphs.gnm_random_graph(Nodes, args.M)
     elif args.graph_model == 'SpinGlass':
-        import networkx as nx
         import numpy as np
         import math
         
