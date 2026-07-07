@@ -104,6 +104,54 @@ def build_graph(Nodes, args):
                 edges_added += 1
                     
         return graph
+elif args.graph_model == 'SpatialSpinGlass':
+        import numpy as np
+        import math
+        
+        N = int(args.nodes)
+        graph = nx.Graph()
+        graph.add_nodes_from(range(N))
+        
+        # 1. FAIRNESS: Define edge budget (2 * N to match baseline)
+        edge_budget = N * 2
+        
+        # 2. PHYSICAL GEOMETRY (The missing ingredient from pure Spin Glass)
+        side_length = int(math.ceil(math.sqrt(N)))
+        coords = np.array([(i // side_length, i % side_length) for i in range(N)])
+        diff = coords[:, np.newaxis, :] - coords[np.newaxis, :, :]
+        distances = np.linalg.norm(diff, axis=-1)
+        
+        # 3. Random spin initialization
+        spins = np.random.choice([-1, 1], size=N)
+        
+        # 4. SPATIALLY-BIASED Interaction Matrix
+        # We generate random coupling, but divide it by physical distance.
+        # This means local nodes naturally have stronger coupling limits than distant ones.
+        J_random = np.random.normal(0, 1, (N, N))
+        J = J_random / (distances + 1.0)  # +1.0 prevents division by zero
+        
+        # 5. Energy Contribution Matrix: H_ij = J_ij * s_i * s_j
+        interaction_matrix = J * np.outer(spins, spins)
+        interaction_matrix = (interaction_matrix + interaction_matrix.T) / 2
+        
+        # Set diagonal to -inf so we don't connect nodes to themselves
+        np.fill_diagonal(interaction_matrix, -np.inf)
+        
+        # 6. RANK-BASED SELECTION
+        flat_indices = np.argsort(np.abs(interaction_matrix.ravel()))[::-1]
+        
+        edges_added = 0
+        for idx in flat_indices:
+            if edges_added >= edge_budget:
+                break
+            
+            u, v = divmod(idx, N)
+            
+            if u < v and not graph.has_edge(u, v):
+                graph.add_edge(u, v)
+                edges_added += 1
+                    
+        return graph
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
