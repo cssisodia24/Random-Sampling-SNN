@@ -104,7 +104,8 @@ def build_graph(Nodes, args):
                 edges_added += 1
                     
         return graph
-elif args.graph_model == 'SpatialSpinGlass':
+    elif args.graph_model == 'SpatialSpinGlass':
+        import networkx as nx
         import numpy as np
         import math
         
@@ -152,6 +153,9 @@ elif args.graph_model == 'SpatialSpinGlass':
                 edges_added += 1
                     
         return graph
+
+    
+    
 
 def save_graph(graph, path):
     with open(path, 'w') as f:
