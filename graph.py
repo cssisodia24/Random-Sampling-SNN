@@ -105,7 +105,6 @@ def build_graph(Nodes, args):
                     
         return graph
     elif args.graph_model == 'SpatialSpinGlass':
-        import networkx as nx
         import numpy as np
         import math
         
